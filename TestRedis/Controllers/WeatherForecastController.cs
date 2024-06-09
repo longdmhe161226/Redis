@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using TestRedis.Attributes;
+using TestRedis.Services;
 
 namespace TestRedis.Controllers
 {
@@ -13,21 +15,32 @@ namespace TestRedis.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        private readonly IResponseCacheService responseCacheService;
+
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IResponseCacheService responseCacheService)
         {
             _logger = logger;
+            this.responseCacheService = responseCacheService;
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        [Cache(1000)]
+        public IActionResult Get(string ok = "nong")
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            var result = Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
                 TemperatureC = Random.Shared.Next(-20, 55),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+            }).ToArray();
+            return Ok(result);
+        }
+
+        [HttpGet("Create")]
+        public async Task<IActionResult> Create()
+        {
+            responseCacheService.RemoceCacheResponseAsync("/WeatherForecast");
+            return Ok();
         }
     }
 }

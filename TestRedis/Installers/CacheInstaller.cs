@@ -14,7 +14,7 @@ namespace TestRedis.Installers
 
             services.AddSingleton(redisConfiguration);
 
-            if (redisConfiguration.Enabled)
+            if (!redisConfiguration.Enabled)
                 return;
 
             services.AddSingleton<IConnectionMultiplexer>(x => ConnectionMultiplexer.Connect(redisConfiguration.ConnectionString));
